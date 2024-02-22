@@ -4,8 +4,9 @@ body {
 	font-size: 14px;
 }
 .projcard-container {
-	margin: 50px auto;
-    overflow-x: hidden;
+	margin: 20px auto;
+    width: 500px;
+    overflow: hidden;
 
 }
 
@@ -17,17 +18,16 @@ body {
 .projcard-container {
 	margin-left: auto;
 	margin-right: auto;
-	width: 1000px;
 }
 .projcard {
 	position: relative;
-	width: 1000px;
-	height: 300px;
-	margin-bottom: 40px;
+	width: 500px;
+	height: 150px;
+	margin-bottom: 20px;
 	border-radius: 10px;
 	background-color: #fff;
 	border: 2px solid #ddd;
-	font-size: 18px;
+	font-size: 10px;
 	overflow: hidden;
 	cursor: pointer;
 	box-shadow: 0 4px 21px -12px rgba(0, 0, 0, .66);
@@ -59,16 +59,15 @@ body {
 }
 .projcard-img {
 	position: absolute;
-    max-width: 100%;
-	height: 300px;
-	width: 400px;
+    max-width: 50%;
+	height: 150px;
+	width: 150px;
 	top: 0;
 	left: 0;
 	transition: transform 0.2s ease;
 }
 .projcard:nth-child(2n) .projcard-img {
 	left: initial;
-	right: 0;
 }
 .projcard:hover .projcard-img {
 	transform: scale(1.05) rotate(1deg);
@@ -78,16 +77,17 @@ body {
 }
 .projcard-textbox {
 	position: absolute;
-	top: 7%;
+	top: 3%;
 	bottom: 7%;
-	left: 430px;
-	width: calc(100% - 470px);
-	font-size: 14px;
+	left: 225px;
+	width: 250px;
+	height: 200px;
+	font-size: 10px;
 }
-.projcard:nth-child(2n) .projcard-textbox {
+/* .projcard:nth-child(2n) .projcard-textbox {
 	left: initial;
 	right: 430px;
-}
+} */
 .projcard-textbox::before,
 .projcard-textbox::after {
 	content: "";
@@ -117,7 +117,7 @@ body {
 }
 .projcard-title {
 	font-family: 'Voces', 'Open Sans', arial, sans-serif;
-	font-size: 24px;
+	font-size: 15px;
 }
 .projcard-subtitle {
 	font-family: 'Voces', 'Open Sans', arial, sans-serif;
@@ -158,7 +158,7 @@ body {
 .projcard-customcolor:nth-child(2n)::before { background-image: linear-gradient(-250deg, var(--projcard-color), transparent 50%); }
 .projcard-description {
 	z-index: 10;
-	font-size: 14px;
+	font-size: 10px;
 	color: #424242;
 	height: 125px;
 	overflow: hidden;
