@@ -205,3 +205,16 @@ body {
 	right: -10px;
 	top: 0;
 }
+
+.pref{
+	margin: 25px;
+}
+.topic-search{
+	position: absolute;
+	width: 400px;
+}
+
+.btn-search{
+	position: relative;
+	top: 20px;
+}
