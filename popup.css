@@ -61,7 +61,7 @@ body {
 	position: absolute;
     max-width: 50%;
 	height: 150px;
-	width: 150px;
+	width: 200px;
 	top: 0;
 	left: 0;
 	transition: transform 0.2s ease;
@@ -96,7 +96,7 @@ body {
 	background: #ff0000bb;
 	background: #fff;
 	top: -20%;
-	left: -55px;
+	/* left: -55px; */
 	height: 140%;
 	width: 60px;
 	transform: rotate(8deg);

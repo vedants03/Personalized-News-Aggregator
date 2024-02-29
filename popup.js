@@ -1,34 +1,66 @@
-document.querySelectorAll(".projcard-description").forEach(function(box) {
-	// $clamp(box, {clamp: 6});
+document.querySelectorAll(".projcard-description").forEach(function (box) {
+    // $clamp(box, {clamp: 6});
 });
 
 document.getElementById("submit-button").addEventListener("click", savePref);
 
 document.addEventListener('DOMContentLoaded', function () {
-	chrome.storage.local.get(['preferences'], function(result) {
-		const storedValue = result.preferences;
+    chrome.storage.local.get(['preferences'], function (result) {
+        const storedValue = result.preferences;
         var preferences = {
             "preferences": storedValue
         };
-    
+
         var urlParams = new URLSearchParams(preferences);
-    
+
         fetch('http://127.0.0.1:5000/fetch?' + urlParams, {
             method: 'GET',
             mode: 'cors',
             credentials: 'include'
         })
-        .then(response => response.json())
-        .then(data => {
-            // Process the JSON data and render it in the DOM
-            displayNews(data.news);
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-	});
+            .then(response => response.json())
+            .then(data => {
+                // Process the JSON data and render it in the DOM
+                displayNews(data.news);
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+    });
+
+    getHistory();
 
 });
+
+function getHistory() {
+    chrome.history.search({ text: '', maxResults: 10 }, function (data) {
+        var historyData = [];
+
+        data.forEach(function (page) {
+            // Extract important information from each history entry
+            var pageData = {
+                url: page.url,
+                title: page.title,
+                lastVisitTime: page.lastVisitTime,
+                visitCount: page.visitCount
+                // Add more properties as needed
+            };
+
+            historyData.push(pageData);
+
+            // Log extracted information
+            console.log('URL:', pageData.url);
+            console.log('Title:', pageData.title);
+            console.log('Last Visit Time:', new Date(pageData.lastVisitTime));
+            console.log('Visit Count:', pageData.visitCount);
+            console.log('---');
+        });
+
+        // Use historyData array for further processing or personalization
+        // For example, send it to your server or analyze it to understand user behavior
+        console.log('History Data:', historyData);
+    });
+}
 
 function displayNews(news) {
     // Get the container element
@@ -79,20 +111,32 @@ function displayNews(news) {
 }
 
 function savePref() {
-	const userInput = document.getElementById('search').value;
+    const userInput = document.getElementById('search').value;
 
-	// Save data to extension storage
-	if(userInput){
-		chrome.storage.local.set({ preferences: userInput }, function() {
-		  console.log('Data saved:', userInput);
-		});
+    // Save data to extension storage
+    if (userInput) {
+        var pref = { preferences: userInput }
+        chrome.storage.local.set(pref, function () {
+            console.log('Data saved:', userInput);
+            location.reload();
+            // var urlParams = new URLSearchParams(pref);
+            
+            // fetch('http://127.0.0.1:5000/fetch?' + urlParams, {
+            //     method: 'GET',
+            //     mode: 'cors',
+            //     credentials: 'include'
+            // })
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         // Process the JSON data and render it in the DOM
+            //         displayNews(data.news);
+            //     })
+            //     .catch(error => {
+            //         console.error('Error fetching data:', error);
+            //     });
+        });
 
-		chrome.storage.local.get(['preferences'], function(result) {
-			const storedValue = result.preferences;
-			console.log('Retrieved value:', storedValue);
-	
-			// You can use the retrieved value as needed, e.g., update the UI.
-		  });
-	}
-  }
+    }
+
+}
 
