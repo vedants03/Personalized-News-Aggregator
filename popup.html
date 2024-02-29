@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personalized News Aggregator</title>
-    <script src="popup.js" ></script>
+
     <link rel="stylesheet" href="popup.css">
     <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"> -->
 
@@ -12,10 +12,11 @@
 <body>
     <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script> -->
     <div class="pref">
-        <input type="text" class="topic-search" id="Search" >
-        <button type="submit" class="btn-search" onclick="savePref">Submit</button>
+        <input type="text" class="topic-search" id="search" >
+        <button type="submit" class="btn-search" id="submit-button">Submit</button>
     </div>
-    <div class="projcard-container">
+    <div class="projcard-container" id="news-container"></div>
+    <!-- <div class="projcard-container">
 		
         <div class="projcard projcard-blue">
             <div class="projcard-innerbox">
@@ -81,9 +82,9 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
         
     </div>
-    
+    <script src="popup.js" ></script>
 </body>
 </html>

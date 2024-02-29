@@ -120,12 +120,13 @@ body {
 	font-size: 15px;
 }
 .projcard-subtitle {
+	margin-top: 5px;
 	font-family: 'Voces', 'Open Sans', arial, sans-serif;
 	color: #888;
 }
 .projcard-bar {
 	left: -2px;
-	width: 50px;
+	width: 240px;
 	height: 5px;
 	margin: 10px 0;
 	border-radius: 5px;
