@@ -1,64 +1,72 @@
 document.querySelectorAll(".projcard-description").forEach(function (box) {
-    // $clamp(box, {clamp: 6});
+    $clamp(box, {clamp: 3});
 });
 
 document.getElementById("submit-button").addEventListener("click", savePref);
+document.getElementById("ref_button").addEventListener("click", getHistoryKeywords);
+
 
 document.addEventListener('DOMContentLoaded', function () {
-    chrome.storage.local.get(['preferences'], function (result) {
-        const storedValue = result.preferences;
-        var preferences = {
-            "preferences": storedValue
-        };
-
-        var urlParams = new URLSearchParams(preferences);
-
-        fetch('http://127.0.0.1:5000/fetch?' + urlParams, {
-            method: 'GET',
-            mode: 'cors',
-            credentials: 'include'
-        })
-            .then(response => response.json())
-            .then(data => {
-                // Process the JSON data and render it in the DOM
-                displayNews(data.news);
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
-    });
-
-    getHistory();
 
 });
 
-function getHistory() {
+function showLoading(){
+    var loading_indicator = document.createElement('div');
+    loading_indicator.id = 'loading-indicator';
+    var hourglass = document.createElement('div');
+    hourglass.className = 'lds-hourglass';
+    loading_indicator.appendChild(hourglass);
+    document.body.appendChild(loading_indicator);
+}
+
+function hideLoading(){
+    var loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.parentNode.removeChild(loadingIndicator);
+    }
+}
+
+function getHistoryKeywords() {
+    showLoading();
     chrome.history.search({ text: '', maxResults: 10 }, function (data) {
         var historyData = [];
 
         data.forEach(function (page) {
-            // Extract important information from each history entry
-            var pageData = {
-                url: page.url,
-                title: page.title,
-                lastVisitTime: page.lastVisitTime,
-                visitCount: page.visitCount
-                // Add more properties as needed
-            };
-
-            historyData.push(pageData);
-
-            // Log extracted information
-            console.log('URL:', pageData.url);
-            console.log('Title:', pageData.title);
-            console.log('Last Visit Time:', new Date(pageData.lastVisitTime));
-            console.log('Visit Count:', pageData.visitCount);
-            console.log('---');
+            // Check if the visit count is greater than or equal to 3
+            if (page.visitCount >= 3) {
+                // Extract important information from each history entry
+                var pageData = {
+                    url: page.url,
+                    title: page.title,
+                };
+                historyData.push(pageData);
+            }
         });
-
-        // Use historyData array for further processing or personalization
-        // For example, send it to your server or analyze it to understand user behavior
         console.log('History Data:', historyData);
+        var requestData = {
+            historyData: historyData
+        };
+        
+        // Make a POST request to the backend endpoint
+        fetch('http://127.0.0.1:5000/history', {
+            method: 'POST',
+            mode: 'cors',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            data.forEach(resData => {
+                displayNews(resData.news);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
     });
 }
 
@@ -119,24 +127,7 @@ function savePref() {
         chrome.storage.local.set(pref, function () {
             console.log('Data saved:', userInput);
             location.reload();
-            // var urlParams = new URLSearchParams(pref);
-            
-            // fetch('http://127.0.0.1:5000/fetch?' + urlParams, {
-            //     method: 'GET',
-            //     mode: 'cors',
-            //     credentials: 'include'
-            // })
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         // Process the JSON data and render it in the DOM
-            //         displayNews(data.news);
-            //     })
-            //     .catch(error => {
-            //         console.error('Error fetching data:', error);
-            //     });
         });
-
     }
-
 }
 

@@ -1,18 +1,38 @@
 from flask_cors import CORS, cross_origin
 from flask import Flask ,render_template, request, jsonify
-from GoogleNews import GoogleNews
-import pandas as pd
 import requests
 from fake_useragent import UserAgent
 from newspaper import fulltext
 import itertools
-from newsapi import NewsApiClient
+from utils import generate_news, extract_categories_from_history
 
-
-newsapi = NewsApiClient(api_key='516a5432d67e4f3ab8e139113a353941')
 
 app = Flask(__name__,template_folder='template')
 CORS(app,supports_credentials=True)
+
+@app.route('/history', methods = ['POST'])
+def getHistoryNews():
+    try:
+        # Get JSON data from the request
+        data = request.get_json()
+
+        # Extract historyData from the JSON data
+        history_data = data.get('historyData', [])
+
+        # Extract keywords using rake-nltk
+        keywords_list = extract_categories_from_history(history_data)
+
+        # Prepare response data
+        response_data = generate_news(keywords_list)
+
+        return response_data
+
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+
+
 
 @app.route('/fetch', methods = ['GET'])
 def get_news():
@@ -63,7 +83,7 @@ def get_news():
     api_key = '516a5432d67e4f3ab8e139113a353941'
 
     # Make a request to the News API
-    url = f'https://newsapi.org/v2/everything?q={keyword}&apiKey={api_key}'
+    url = f'https://newsapi.org/v2/everything?country=in&q={keyword}&apiKey={api_key}'
     response = requests.get(url)
     data = response.json()
 
@@ -104,8 +124,6 @@ def get_news():
     }
 
     return jsonify(response_data)
-
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000)
