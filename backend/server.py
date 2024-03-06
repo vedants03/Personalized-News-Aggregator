@@ -4,8 +4,15 @@ import requests
 from fake_useragent import UserAgent
 from newspaper import fulltext
 import itertools
-from utils import generate_news, extract_categories_from_history
-
+from utils import generate_news, extract_categories_from_history, scrape_news
+from GoogleNews import GoogleNews
+import pandas as pd
+# import openai
+# import platform
+# import os
+# import nltk
+# nltk.download('punkt')
+# from nltk.tokenize import word_tokenize
 
 app = Flask(__name__,template_folder='template')
 CORS(app,supports_credentials=True)
@@ -32,7 +39,12 @@ def getHistoryNews():
         return jsonify({'error': str(e)}), 500
     
 
-
+@app.route('/summarize', methods=['POST'])
+def getSummarize():
+    data = request.get_json()
+    title = data.get('title','')
+    summary = scrape_news(title)
+    return jsonify(summary)
 
 @app.route('/fetch', methods = ['GET'])
 def get_news():
@@ -83,7 +95,7 @@ def get_news():
     api_key = '516a5432d67e4f3ab8e139113a353941'
 
     # Make a request to the News API
-    url = f'https://newsapi.org/v2/everything?country=in&q={keyword}&apiKey={api_key}'
+    url = f'https://newsapi.org/v2/everything?q={keyword}&apiKey={api_key}'
     response = requests.get(url)
     data = response.json()
 
@@ -122,7 +134,7 @@ def get_news():
         'keyword': keyword,
         'news': news_data_list
     }
-
+    print(response_data)
     return jsonify(response_data)
 
 if __name__ == "__main__":

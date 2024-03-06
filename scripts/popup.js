@@ -1,5 +1,5 @@
 document.querySelectorAll(".projcard-description").forEach(function (box) {
-    $clamp(box, {clamp: 3});
+    $clamp(box, { clamp: 3 });
 });
 
 document.getElementById("submit-button").addEventListener("click", savePref);
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
-function showLoading(){
+function showLoading() {
     var loading_indicator = document.createElement('div');
     loading_indicator.id = 'loading-indicator';
     var hourglass = document.createElement('div');
@@ -19,7 +19,7 @@ function showLoading(){
     document.body.appendChild(loading_indicator);
 }
 
-function hideLoading(){
+function hideLoading() {
     var loadingIndicator = document.getElementById('loading-indicator');
     if (loadingIndicator) {
         loadingIndicator.parentNode.removeChild(loadingIndicator);
@@ -46,7 +46,7 @@ function getHistoryKeywords() {
         var requestData = {
             historyData: historyData
         };
-        
+
         // Make a POST request to the backend endpoint
         fetch('http://127.0.0.1:5000/history', {
             method: 'POST',
@@ -57,16 +57,16 @@ function getHistoryKeywords() {
             },
             body: JSON.stringify(requestData),
         })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            data.forEach(resData => {
-                displayNews(resData.news);
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                data.forEach(resData => {
+                    displayNews(resData.news);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
             });
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
     });
 }
 
@@ -126,8 +126,32 @@ function savePref() {
         var pref = { preferences: userInput }
         chrome.storage.local.set(pref, function () {
             console.log('Data saved:', userInput);
-            location.reload();
+        });
+        chrome.storage.local.get(['preferences'], function(result) {
+            const storedValue = result.preferences;
+            var preferences = {
+                "preferences": storedValue
+            };
+    
+            var urlParams = new URLSearchParams(preferences);
+    
+            fetch('http://127.0.0.1:5000/fetch?' + urlParams, {
+                method: 'GET',
+                mode: 'cors',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Process the JSON data and render it in the DOM
+                displayNews(data.news);
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
         });
     }
 }
+
+    
+
 
