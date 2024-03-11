@@ -11,7 +11,7 @@ import pandas as pd
 from transformers import pipeline
 import openai
 
-openai.api_key = "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"
+
 
 model_directory = model_directory = r"C:\Users\vedan\OneDrive\Documents\GitHub\Personalized-News-Aggregator\trained_model"
 summarizer = pipeline("summarization", model="Falconsai/text_summarization")
