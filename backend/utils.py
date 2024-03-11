@@ -4,24 +4,23 @@ from newspaper import fulltext
 import itertools
 from transformers import BertTokenizer, BertForSequenceClassification
 import torch
-import openai
-import platform
-import os
 import nltk
-nltk.download('punkt')
 from nltk.tokenize import word_tokenize
 from GoogleNews import GoogleNews
 import pandas as pd
 from transformers import pipeline
+import openai
 
-model_directory = model_directory = r"E:\\Programming\\GITHUB\\Personalized-News-Aggregator\\trained_model"
+openai.api_key = "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"
+
+model_directory = model_directory = r"C:\Users\vedan\OneDrive\Documents\GitHub\Personalized-News-Aggregator\trained_model"
 summarizer = pipeline("summarization", model="Falconsai/text_summarization")
 # Load tokenizer and model
 tokenizer = BertTokenizer.from_pretrained(model_directory)
 model = BertForSequenceClassification.from_pretrained(model_directory)
 
 # Example path to the config file
-config_path = r"E:\\Programming\\GITHUB\\Personalized-News-Aggregator\\trained_model"
+config_path = r"C:\Users\vedan\OneDrive\Documents\GitHub\Personalized-News-Aggregator\trained_model\config.json"
 label_mapping = model.config.id2label
 
 def classify_history_titles(titles, model, tokenizer, label_mapping):
@@ -114,7 +113,7 @@ def scrape_news(title):
     ua = UserAgent()
     news_text_string = ""  # Initialize an empty string to store news text
 
-    for index, headers in itertools.islice(news_data_df.iterrows(), 4):        
+    for index, headers in itertools.islice(news_data_df.iterrows(), 8):        
         news_title = str(headers['title'])
         news_media = str(headers['media'])
         news_update = str(headers['date'])
@@ -128,24 +127,13 @@ def scrape_news(title):
             text = fulltext(html)
             print('Text Content Scraped')
             # Concatenate the text content to the string
-            news_text_string += f"{news_title}\n{news_description}\n{text}\n\n"
+            if(len(text) > 50):
+                news_text_string += text
         except:
             print('Text Content Scraped Error, Skipped')
             pass
-
-    # # Display the concatenated news text string
     return summarization(news_text_string)
     
-
-# Define the function to count the number of tokens.
-# def count_tokens(stringname):
-#     tokens = word_tokenize(stringname)
-#     return len(tokens)
-#     # Display the number of tokens from the top 10 news record's text content.
-#     stringname = news_text_content_string
-
-#     token_count = count_tokens(stringname)
-#     print(f"Number of tokens: {token_count}")
 
 def break_up_file(tokens, chunk_size, overlap_size):
     if len(tokens) <= chunk_size:
@@ -155,7 +143,7 @@ def break_up_file(tokens, chunk_size, overlap_size):
         yield chunk
         yield from break_up_file(tokens[chunk_size-overlap_size:], chunk_size, overlap_size)
 
-def break_up_file_to_chunks(stringname, chunk_size=2000, overlap_size=100):
+def break_up_file_to_chunks(stringname, chunk_size=500, overlap_size=100):
     tokens = word_tokenize(stringname)
     return list(break_up_file(tokens, chunk_size, overlap_size))
 
@@ -165,7 +153,29 @@ def convert_to_detokenized_text(tokenized_text):
     prompt_text = prompt_text.replace(" 's", "'s")
     return prompt_text
 
+def break_up_text(text, window_size=300, stride=50):
+    windows = [text[i:i + window_size] for i in range(0, len(text) - window_size + 1, stride)]
+    print(windows)
+    return windows
+
 def summarization(scrapped_text):
+    summary = summarizer(scrapped_text, max_length=400, min_length=100, do_sample=False)
+    return summary
+
+    # response = openai.Completion.create(
+    # engine="gpt-3.5-turbo-instruct",
+    # prompt="Summarize the following text: \n" + scrapped_text,
+    # max_tokens=1000,
+    # n=1,
+    # stop=None,
+    # temperature=0.7,
+    # )
+
+    # summary = response['choices'][0]['text']
+    # print(summary)
+    # return summary
+
+
     # openai.api_type = "azure"
     # openai.api_base = "https://PLESAE_ENTER_YOUR_OWNED_AOAI_RESOURCE_NAME.openai.azure.com/"
     # openai.api_version = "2022-12-01"
@@ -173,7 +183,6 @@ def summarization(scrapped_text):
     # Perform news text content summarization by Azure OpenAI Service (GPT3) for each chunk.
 
 
-    stringname = scrapped_text
 
     # prompt_response = []
     # chunks = break_up_file_to_chunks(stringname)
@@ -226,7 +235,14 @@ def summarization(scrapped_text):
     #     print("Error:", e)
     #     return None
 
+# Define the function to count the number of tokens.
+# def count_tokens(stringname):
+#     tokens = word_tokenize(stringname)
+#     return len(tokens)
+#     # Display the number of tokens from the top 10 news record's text content.
+#     stringname = news_text_content_string
+
+#     token_count = count_tokens(stringname)
+#     print(f"Number of tokens: {token_count}")
+
     
-    summary = summarizer(scrapped_text, max_length=400, min_length=100, do_sample=False)
-    print(summary)
-    return summary

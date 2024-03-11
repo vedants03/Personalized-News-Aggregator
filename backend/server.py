@@ -40,11 +40,13 @@ def getHistoryNews():
     
 
 @app.route('/summarize', methods=['POST'])
+@cross_origin(supports_credentials=True)
 def getSummarize():
     data = request.get_json()
-    title = data.get('title','')
-    summary = scrape_news(title)
-    return jsonify(summary)
+    summary = scrape_news(data)
+    print(summary)
+    response = jsonify(summary)
+    return response
 
 @app.route('/fetch', methods = ['GET'])
 def get_news():

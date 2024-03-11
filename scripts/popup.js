@@ -1,3 +1,5 @@
+var news_response;
+
 document.querySelectorAll(".projcard-description").forEach(function (box) {
     $clamp(box, { clamp: 3 });
 });
@@ -59,6 +61,7 @@ function getHistoryKeywords() {
         })
             .then(response => response.json())
             .then(data => {
+                news_response = data;
                 hideLoading();
                 data.forEach(resData => {
                     displayNews(resData.news);
@@ -70,19 +73,92 @@ function getHistoryKeywords() {
     });
 }
 
+function displaySummary(title){
+    var container = document.createElement('div');
+    container.className = 'summary-container';
+
+    const existingContent = document.getElementById('news-container');
+    if (existingContent) {
+        existingContent.remove();
+        showLoading();
+    }
+    else{
+        console.error("Not found")
+    }
+
+    var backButton = document.createElement('button');
+    backButton.className = 'button-17';
+    backButton.id = 'back-button';
+    backButton.textContent = 'Back'
+    backButton.addEventListener('click',function(){
+        container.remove();
+        document.body.appendChild(existingContent);
+        news_response.forEach(item =>{
+            displayNews(item.news);
+        })
+    })
+
+    var heading_div = document.createElement('div');
+    heading_div.id = 'summary-heading'
+    heading_div.className = 'heading-div'
+
+    var heading = document.createElement('h2');
+    heading.className = 'article-title';
+    heading.innerText = title;
+    heading_div.appendChild(heading);
+
+    var bar = document.createElement('div');
+    bar.className = 'projcard-bar'
+    bar.style.width = '100%';    
+
+    var content_div = document.createElement('div');
+    content_div.id = 'summary-content'
+    content_div.className = 'content-div'
+
+    var content = document.createElement('p');
+    content.className = 'summary-text';
+    content_div.appendChild(content);
+    heading_div.appendChild(bar);
+
+    fetch('http://127.0.0.1:5000/summarize', {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(title),
+    })
+    .then(response => response.json())
+    .then(data => {
+        content.innerText = data[0].summary_text;
+        hideLoading();
+        container.appendChild(heading_div);
+        container.appendChild(content_div);
+        container.appendChild(backButton);
+        document.body.appendChild(container);
+    
+    })
+    .catch(error => {
+        console.error('Error fetching data:', error);
+    });
+}
+
 function displayNews(news) {
     // Get the container element
     var container = document.getElementById('news-container');
-    container.className = 'projcard-conatiner'
+    container.className = 'projcard-container'
     // Iterate over each news article and create a card for it
     news.forEach(article => {
         // Create elements for each piece of information
         var card = document.createElement('div');
         card.className = 'projcard projcard-blue';
-
+        card.addEventListener("click",function(){
+            displaySummary(article.title);
+        });
         var bar = document.createElement('div');
         bar.className = 'projcard-bar'
-
+        
         var innerBox = document.createElement('div');
         innerBox.className = 'projcard-innerbox';
 
@@ -143,6 +219,7 @@ function savePref() {
             .then(response => response.json())
             .then(data => {
                 // Process the JSON data and render it in the DOM
+                news_response = data;
                 displayNews(data.news);
             })
             .catch(error => {
