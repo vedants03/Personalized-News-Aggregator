@@ -6,6 +6,12 @@ document.querySelectorAll(".projcard-description").forEach(function (box) {
 
 document.getElementById("submit-button").addEventListener("click", savePref);
 document.getElementById("ref_button").addEventListener("click", getHistoryKeywords);
+document.getElementById("search").addEventListener("keypress", function (event) {
+    if(event.key === "Enter"){
+        savePref();
+    }
+});
+
 
 
 
