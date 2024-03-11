@@ -13,14 +13,14 @@ import openai
 
 
 
-model_directory = model_directory = r"C:\Users\vedan\OneDrive\Documents\GitHub\Personalized-News-Aggregator\trained_model"
+model_directory = model_directory = r"E:\Programming\GITHUB\Personalized-News-Aggregator\trained_model"
 summarizer = pipeline("summarization", model="Falconsai/text_summarization")
 # Load tokenizer and model
 tokenizer = BertTokenizer.from_pretrained(model_directory)
 model = BertForSequenceClassification.from_pretrained(model_directory)
 
 # Example path to the config file
-config_path = r"C:\Users\vedan\OneDrive\Documents\GitHub\Personalized-News-Aggregator\trained_model\config.json"
+config_path = r"E:\Programming\GITHUB\Personalized-News-Aggregator\trained_model"
 label_mapping = model.config.id2label
 
 def classify_history_titles(titles, model, tokenizer, label_mapping):

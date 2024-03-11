@@ -33,6 +33,7 @@ body {
 .projcard-container {
 	margin-left: auto;
 	margin-right: auto;
+	
 }
 .projcard {
 	position: relative;
@@ -47,10 +48,15 @@ body {
 	cursor: pointer;
 	box-shadow: 0 4px 21px -12px rgba(0, 0, 0, .66);
 	transition: box-shadow 0.2s ease, transform 0.2s ease;
+	border-radius: 50px;
 }
 .projcard:hover {
 	box-shadow: 0 34px 32px -33px rgba(0, 0, 0, .18);
 	transform: translate(0px, -3px);
+}
+
+h1{
+	text-align: center;
 }
 .projcard::before {
 	content: "";
@@ -375,7 +381,7 @@ body {
   }
   .input-search{
 	height: 25px;
-	width: 0px;
+	width: 450px;
 	border-style: none;
 	padding: 10px;
 	font-size: 18px;
@@ -410,7 +416,7 @@ body {
 	background-color:transparent;
 	pointer-events: painted;  
   }
-  .btn-search:focus ~ .input-search{
+  /* .btn-search:focus ~ .input-search{
 	width: 400px;
 	border-radius: 25px;
 	background-color: #22a6b3;
@@ -423,7 +429,7 @@ body {
 	background-color: #22a6b3	;
 	border-bottom:1px solid rgba(255,255,255,.5);
 	transition: all 500ms cubic-bezier(0, 0.110, 0.35, 2);
-  }
+  } */
 
 .container-top{
 	display: flex;

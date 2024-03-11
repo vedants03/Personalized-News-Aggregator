@@ -8,9 +8,12 @@ document.getElementById("submit-button").addEventListener("click", savePref);
 document.getElementById("ref_button").addEventListener("click", getHistoryKeywords);
 
 
+
 document.addEventListener('DOMContentLoaded', function () {
 
 });
+
+ 
 
 function showLoading() {
     var loading_indicator = document.createElement('div');
@@ -210,7 +213,7 @@ function savePref() {
             };
     
             var urlParams = new URLSearchParams(preferences);
-    
+            showLoading();
             fetch('http://127.0.0.1:5000/fetch?' + urlParams, {
                 method: 'GET',
                 mode: 'cors',
@@ -220,11 +223,13 @@ function savePref() {
             .then(data => {
                 // Process the JSON data and render it in the DOM
                 news_response = data;
+                hideLoading();
                 displayNews(data.news);
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
             });
+
         });
     }
 }
