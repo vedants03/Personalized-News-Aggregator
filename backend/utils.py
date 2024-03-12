@@ -1,6 +1,6 @@
 import requests
 from fake_useragent import UserAgent
-from newspaper import fulltext
+from newspaper import fulltext,Article
 import itertools
 from transformers import BertTokenizer, BertForSequenceClassification
 import torch
@@ -9,18 +9,20 @@ from nltk.tokenize import word_tokenize
 from GoogleNews import GoogleNews
 import pandas as pd
 from transformers import pipeline
-import openai
+from pygooglenews import GoogleNews
+from bs4 import BeautifulSoup
 
 
 
-model_directory = model_directory = r"E:\Programming\GITHUB\Personalized-News-Aggregator\trained_model"
+
+gn = GoogleNews()
+model_directory = r"C:\Users\vedan\OneDrive\Documents\GitHub\Personalized-News-Aggregator\trained_model"
 summarizer = pipeline("summarization", model="Falconsai/text_summarization")
 # Load tokenizer and model
 tokenizer = BertTokenizer.from_pretrained(model_directory)
 model = BertForSequenceClassification.from_pretrained(model_directory)
 
-# Example path to the config file
-config_path = r"E:\Programming\GITHUB\Personalized-News-Aggregator\trained_model"
+
 label_mapping = model.config.id2label
 
 def classify_history_titles(titles, model, tokenizer, label_mapping):
@@ -103,36 +105,58 @@ def generate_news(keywords):
     return all_news_data
 
 def scrape_news(title):
-    googlenews = GoogleNews(lang='en', region='US', period='1d', encode='utf-8')
-    googlenews.clear()
-    googlenews.search(title)
-    googlenews.get_page(2)
-    news_result = googlenews.result(sort=True)
-    news_data_df = pd.DataFrame.from_dict(news_result)
+    article_count = 0
+    search = gn.search(title, when = '1m')
+    news_text = "This is news text: "
+    for entry in search["entries"]:
+        url = entry["link"]
+        article = Article(url)
+        article.download()
+        article.parse()
 
-    ua = UserAgent()
-    news_text_string = ""  # Initialize an empty string to store news text
+        # Get the main text of the article
+        cleaned_summary = article.text
+        news_text += cleaned_summary
 
-    for index, headers in itertools.islice(news_data_df.iterrows(), 8):        
-        news_title = str(headers['title'])
-        news_media = str(headers['media'])
-        news_update = str(headers['date'])
-        news_timestamp = str(headers['datetime'])
-        news_description = str(headers['desc'])
-        news_link = str(headers['link'])
-        print(news_link)
-        news_img = str(headers['img'])
-        try:
-            html = requests.get(news_link, headers={'User-Agent': ua.chrome}, timeout=5).text
-            text = fulltext(html)
-            print('Text Content Scraped')
-            # Concatenate the text content to the string
-            if(len(text) > 50):
-                news_text_string += text
-        except:
-            print('Text Content Scraped Error, Skipped')
-            pass
-    return summarization(news_text_string)
+        # Increment the article count
+        article_count += 1
+
+        # Break out of the loop if the maximum number of articles is reached
+        if article_count >= 1:
+            break
+
+    print(news_text)
+    # googlenews = GoogleNews(lang='en', region='US', period='1d', encode='utf-8')
+    # googlenews.clear()
+    # googlenews.search(title)
+    # googlenews.get_page(2)
+    # news_result = googlenews.result(sort=True)
+    # news_data_df = pd.DataFrame.from_dict(news_result)
+
+    # ua = UserAgent()
+    # news_text_string = ""  # Initialize an empty string to store news text
+
+    # for index, headers in itertools.islice(news_data_df.iterrows(), 8):        
+    #     news_title = str(headers['title'])
+    #     news_media = str(headers['media'])
+    #     news_update = str(headers['date'])
+    #     news_timestamp = str(headers['datetime'])
+    #     news_description = str(headers['desc'])
+    #     news_link = str(headers['link'])
+    #     print(news_link)
+    #     news_img = str(headers['img'])
+    #     try:
+    #         html = requests.get(news_link, headers={'User-Agent': ua.chrome}, timeout=5).text
+    #         text = fulltext(html)
+    #         print('Text Content Scraped')
+    #         # Concatenate the text content to the string
+    #         if(len(text) > 50):
+    #             news_text_string += text
+    #     except:
+    #         print('Text Content Scraped Error, Skipped')
+    #         pass
+    
+    return summarization(news_text)
     
 
 def break_up_file(tokens, chunk_size, overlap_size):

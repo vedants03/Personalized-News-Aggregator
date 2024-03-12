@@ -5,6 +5,16 @@ body {
 	width: 500px;
 }
 
+#logo{
+	height: 90px;
+	width: 90px;
+	position: absolute;
+	left: 25px;
+	top: 3px;
+	border-style: groove;
+	border-radius: 50%;
+}
+
 
 .projcard-container {
 	margin: 20px auto;

@@ -5,9 +5,8 @@ from fake_useragent import UserAgent
 from newspaper import fulltext
 import itertools
 from utils import generate_news, extract_categories_from_history, scrape_news
-from GoogleNews import GoogleNews
 import pandas as pd
-# import openai
+# import openai 
 # import platform
 # import os
 # import nltk
