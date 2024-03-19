@@ -10,9 +10,16 @@ from GoogleNews import GoogleNews
 import pandas as pd
 from transformers import pipeline
 from pygooglenews import GoogleNews
-from bs4 import BeautifulSoup
+import os
+from dotenv import load_dotenv
+from urllib.request import urlopen
+from PIL import Image
+import io
 
 
+load_dotenv()
+
+gemini_key = os.environ.get('GEMINI_API_KEY')
 
 
 gn = GoogleNews()
@@ -26,22 +33,17 @@ model = BertForSequenceClassification.from_pretrained(model_directory)
 label_mapping = model.config.id2label
 
 def classify_history_titles(titles, model, tokenizer, label_mapping):
-    # Tokenize input titles
     tokens = tokenizer(titles, padding=True, truncation=True, return_tensors="pt")
 
-    # Make predictions
     with torch.no_grad():
         logits = model(**tokens).logits
 
-    # Apply softmax to obtain probabilities
     probabilities = torch.nn.functional.softmax(logits, dim=1)
 
-    # Get predicted label indices
     predicted_labels = torch.argmax(probabilities, dim=1).tolist()
     print(titles)
     print(predicted_labels)
 
-    # Map label indices to category labels using the provided label_mapping
     predicted_categories = [label_mapping.get(label_idx, f"Unknown Category {label_idx}") for label_idx in predicted_labels]
     
     return set(predicted_categories)
@@ -66,7 +68,6 @@ def generate_news(keywords):
         response = requests.get(url)
         data = response.json()
 
-        # Extract relevant information from the API response
         articles = data.get('articles', [])
 
         ua = UserAgent()
@@ -96,7 +97,6 @@ def generate_news(keywords):
                 'text_content': text
             })
 
-        # Append news data for the current keyword
         all_news_data.append({
             'keyword': keyword,
             'news': news_data_list
@@ -107,166 +107,84 @@ def generate_news(keywords):
 def scrape_news(title):
     article_count = 0
     search = gn.search(title, when = '1m')
-    news_text = "This is news text: "
+    news_text = ""
     for entry in search["entries"]:
         url = entry["link"]
-        article = Article(url)
-        article.download()
-        article.parse()
+        print(url)
+        try:
+            article = Article(url)
+            article.download()
+            article.parse()
+            article.nlp()
+        except Exception as e:
+            print(e)
 
-        # Get the main text of the article
         cleaned_summary = article.text
         news_text += cleaned_summary
 
-        # Increment the article count
         article_count += 1
 
-        # Break out of the loop if the maximum number of articles is reached
-        if article_count >= 1:
+        if article_count >= 4:
             break
-
-    print(news_text)
-    # googlenews = GoogleNews(lang='en', region='US', period='1d', encode='utf-8')
-    # googlenews.clear()
-    # googlenews.search(title)
-    # googlenews.get_page(2)
-    # news_result = googlenews.result(sort=True)
-    # news_data_df = pd.DataFrame.from_dict(news_result)
-
-    # ua = UserAgent()
-    # news_text_string = ""  # Initialize an empty string to store news text
-
-    # for index, headers in itertools.islice(news_data_df.iterrows(), 8):        
-    #     news_title = str(headers['title'])
-    #     news_media = str(headers['media'])
-    #     news_update = str(headers['date'])
-    #     news_timestamp = str(headers['datetime'])
-    #     news_description = str(headers['desc'])
-    #     news_link = str(headers['link'])
-    #     print(news_link)
-    #     news_img = str(headers['img'])
-    #     try:
-    #         html = requests.get(news_link, headers={'User-Agent': ua.chrome}, timeout=5).text
-    #         text = fulltext(html)
-    #         print('Text Content Scraped')
-    #         # Concatenate the text content to the string
-    #         if(len(text) > 50):
-    #             news_text_string += text
-    #     except:
-    #         print('Text Content Scraped Error, Skipped')
-    #         pass
+    news_text = news_text.replace("\n", "")
+    news_text = news_text.replace('"', "")
     
     return summarization(news_text)
     
 
-def break_up_file(tokens, chunk_size, overlap_size):
-    if len(tokens) <= chunk_size:
-        yield tokens
-    else:
-        chunk = tokens[:chunk_size]
-        yield chunk
-        yield from break_up_file(tokens[chunk_size-overlap_size:], chunk_size, overlap_size)
-
-def break_up_file_to_chunks(stringname, chunk_size=500, overlap_size=100):
-    tokens = word_tokenize(stringname)
-    return list(break_up_file(tokens, chunk_size, overlap_size))
-
-
-def convert_to_detokenized_text(tokenized_text):
-    prompt_text = " ".join(tokenized_text)
-    prompt_text = prompt_text.replace(" 's", "'s")
-    return prompt_text
-
-def break_up_text(text, window_size=300, stride=50):
-    windows = [text[i:i + window_size] for i in range(0, len(text) - window_size + 1, stride)]
-    print(windows)
-    return windows
-
 def summarization(scrapped_text):
-    summary = summarizer(scrapped_text, max_length=400, min_length=100, do_sample=False)
-    return summary
+    # chunk_size = 500
+    # chunks = []
+    # start = 0
+    # while start < len(scrapped_text):
+    #     end = start + chunk_size
+    #     if end >= len(scrapped_text):
+    #         end = len(scrapped_text)
+    #     else:
+    #         end = scrapped_text.rfind(' ', start, end)
+    #         if end == -1:
+    #             end = start + chunk_size
+    #     chunks.append(scrapped_text[start:end])
+    #     start = end + 1
+    # summary_text = ""
+    # for chunk in chunks:
+    #     chunk_summary = " ".join(item.get('summary_text', '') for item in summarizer(chunk, max_length=100, min_length=100, do_sample=False))
+    #     summary_text += chunk_summary
+    # print(summary_text)
 
-    # response = openai.Completion.create(
-    # engine="gpt-3.5-turbo-instruct",
-    # prompt="Summarize the following text: \n" + scrapped_text,
-    # max_tokens=1000,
-    # n=1,
-    # stop=None,
-    # temperature=0.7,
-    # )
+    # URL of the API endpoint you want to send the POST request to
+    summary_text = ""
+    url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + str(gemini_key)
 
-    # summary = response['choices'][0]['text']
-    # print(summary)
-    # return summary
+    prompt = "Summarize the following text: " + scrapped_text
+    # Data to be sent in the POST request (in JSON format)
+    data = {
+        "contents": [{
+        "parts":[{
+          "text": prompt}]}]
+    }
+
+    headers = {
+        'Content-Type': 'application/json',
+    }
+
+    # Send the POST request
+    response = requests.post(url, json=data, headers=headers)
+
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        # Print the response from the API
+        print('Response:', response.json())
+        response_data = response.json()
+        summary_text = response_data['candidates'][0]['content']['parts'][0]['text']
+    else:
+        # Print the error message if the request was not successful
+        print('Error:', response.text)
+        summary_text = response.text
+
+    return summary_text
 
 
-    # openai.api_type = "azure"
-    # openai.api_base = "https://PLESAE_ENTER_YOUR_OWNED_AOAI_RESOURCE_NAME.openai.azure.com/"
-    # openai.api_version = "2022-12-01"
-    # openai.api_key = "PLEASE_ENTER_YOUR_OWNED_AOAI_SERVICE_KEY"
-    # Perform news text content summarization by Azure OpenAI Service (GPT3) for each chunk.
-
-
-
-    # prompt_response = []
-    # chunks = break_up_file_to_chunks(stringname)
-
-    # for i, chunk in enumerate(chunks):
-    #     print("Processing chunk " + str(i))
-    #     prompt_request = "Summarize this news content: " + convert_to_detokenized_text(chunks[i])
-    #     response = openai.Completion.create(
-    #             engine="eason-text-davinci-002",
-    #             prompt=prompt_request,
-    #             temperature=.5, # Default is 1.
-    #             max_tokens=500,
-    #             top_p=1 # Default is 0.5.
-    #     )
-        
-    #     prompt_response.append(response["choices"][0]["text"].strip())
-
-    # # Define the prompt to perform summarization into 1,500 words for each summarized content.
-    # prompt_request = "Consolidate these news content summaries into 1500 words sentences: " + str(prompt_response)
-    # # Perform summarization by Azure OpenAI Service (GPT3) for each chunk of summarized content.
-    # response = openai.Completion.create(
-    #         engine="PLEASE_ENTER_YOUR_AOAI_MODEL_DEPLOYMENT_NAME",
-    #         prompt=prompt_request,
-    #         temperature=.5, # Default is 1.
-    #         max_tokens=1000,
-    #         top_p=1 # Default is 0.5.
-    #     )
-    # # Display the final summary from the top 10 news record's text content.
-    # news_content_summary = response["choices"][0]["text"].strip()
     
-    #open ai se kiya hua code 
-    # openai.api_key = "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"
-
-    # try:
-    #     # response = openai.Completion.create(
-    #     #     engine="davinci",
-    #     #     prompt=stringname,
-    #     #     max_tokens=1000
-    #     # )
-    #     response = openai.ChatCompletion.create(
-    #         model="text-davinci-003",
-    #         messages=[{"role":"user", "content":stringname}],
-    #         max_tokens=1024,
-    #         temperature=0.5
-    #     )
-    #     summary = response.choices[0].message.content
-    #     print(summary)
-    #     return summary
-    # except Exception as e:
-    #     print("Error:", e)
-    #     return None
-
-# Define the function to count the number of tokens.
-# def count_tokens(stringname):
-#     tokens = word_tokenize(stringname)
-#     return len(tokens)
-#     # Display the number of tokens from the top 10 news record's text content.
-#     stringname = news_text_content_string
-
-#     token_count = count_tokens(stringname)
-#     print(f"Number of tokens: {token_count}")
 
     

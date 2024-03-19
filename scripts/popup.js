@@ -1,8 +1,6 @@
 var news_response;
-
 let submit_button_clicked = false;
 let ref_button_clicked = false;
-
 
 document.querySelectorAll(".projcard-description").forEach(function (box) {
     $clamp(box, { clamp: 3 });
@@ -16,12 +14,9 @@ document.getElementById("search").addEventListener("keypress", function (event) 
     }
 });
 
-
 document.addEventListener('DOMContentLoaded', function () {
 
 });
-
- 
 
 function showLoading() {
     var loading_indicator = document.createElement('div');
@@ -150,7 +145,8 @@ function displaySummary(title){
     })
     .then(response => response.json())
     .then(data => {
-        content.innerText = data[0].summary_text;
+        console.log(data)
+        content.innerText = data;
         hideLoading();
         container.appendChild(heading_div);
         container.appendChild(content_div);
@@ -185,7 +181,7 @@ function displayNews(news) {
 
         var image = document.createElement('img');
         image.className = 'projcard-img';
-        image.src = article.image;
+        image.src = article.image
         image.alt = 'News Image';
 
         var textBox = document.createElement('div');
@@ -220,7 +216,6 @@ function savePref() {
     var news_container = document.getElementById('news-container');
     news_container.innerHTML = '';
 
-    // Save data to extension storage
     if (!submit_button_clicked && userInput) {
         submit_button_clicked = true;
         var pref = { preferences: userInput }
@@ -252,11 +247,6 @@ function savePref() {
                 submit_button_clicked = false;
                 console.error('Error fetching data:', error);
             });
-
         });
     }
 }
-
-    
-
-
