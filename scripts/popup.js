@@ -15,7 +15,12 @@ document.getElementById("search").addEventListener("keypress", function (event) 
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-
+    chrome.storage.local.get(['news'], function(result){
+        const storedValue = result.news;
+        if(storedValue){
+            displayNews(storedValue);
+        }
+    })
 });
 
 function showLoading() {
@@ -40,7 +45,7 @@ function getHistoryKeywords() {
         var news_container = document.getElementById('news-container');
         news_container.innerHTML = '';
         showLoading();
-        chrome.history.search({ text: '', maxResults: 30 }, function (data) {
+        chrome.history.search({ text: '', maxResults: 20 }, function (data) {
             var historyData = [];
     
             data.forEach(function (page) {
@@ -72,10 +77,13 @@ function getHistoryKeywords() {
                 .then(response => response.json())
                 .then(data => {
                     news_response = data;
+                    console.log(news_response)
                     hideLoading();
-                    data.forEach(resData => {
-                        displayNews(resData.news);
-                    });
+                    // data.forEach(resData => {
+                    //     displayNews(resData.news);
+                    // });
+                    saveNews(news_response.news);
+                    displayNews(news_response.news);
                     ref_button_clicked = false;
                 })
                 .catch(error => {
@@ -181,7 +189,7 @@ function displayNews(news) {
 
         var image = document.createElement('img');
         image.className = 'projcard-img';
-        image.src = article.image
+        image.src = 'data:image/png;base64,' + article.image;
         image.alt = 'News Image';
 
         var textBox = document.createElement('div');
@@ -219,34 +227,62 @@ function savePref() {
     if (!submit_button_clicked && userInput) {
         submit_button_clicked = true;
         var pref = { preferences: userInput }
-        chrome.storage.local.set(pref, function () {
-            console.log('Data saved:', userInput);
+        var urlParams = new URLSearchParams(pref);
+        showLoading();
+        fetch('http://127.0.0.1:5000/fetch?' + urlParams, {
+            method: 'GET',
+            mode: 'cors',
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Process the JSON data and render it in the DOM
+            news_response = data;
+            hideLoading();
+            displayNews(data.news);
+            submit_button_clicked = false;
+        })
+        .catch(error => {
+            submit_button_clicked = false;
+            console.error('Error fetching data:', error);
         });
-        chrome.storage.local.get(['preferences'], function(result) {
-            const storedValue = result.preferences;
-            var preferences = {
-                "preferences": storedValue
-            };
+        // chrome.storage.local.set(pref, function () {
+        //     console.log('Data saved:', userInput);
+        // });
+        // chrome.storage.local.get(['preferences'], function(result) {
+        //     const storedValue = result.preferences;
+        //     var preferences = {
+        //         "preferences": storedValue
+        //     };
     
-            var urlParams = new URLSearchParams(preferences);
-            showLoading();
-            fetch('http://127.0.0.1:5000/fetch?' + urlParams, {
-                method: 'GET',
-                mode: 'cors',
-                credentials: 'include'
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Process the JSON data and render it in the DOM
-                news_response = data;
-                hideLoading();
-                displayNews(data.news);
-                submit_button_clicked = false;
-            })
-            .catch(error => {
-                submit_button_clicked = false;
-                console.error('Error fetching data:', error);
-            });
-        });
+        //     var urlParams = new URLSearchParams(preferences);
+        //     showLoading();
+        //     fetch('http://127.0.0.1:5000/fetch?' + urlParams, {
+        //         method: 'GET',
+        //         mode: 'cors',
+        //         credentials: 'include'
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         // Process the JSON data and render it in the DOM
+        //         news_response = data;
+        //         hideLoading();
+        //         displayNews(data.news);
+        //         submit_button_clicked = false;
+        //     })
+        //     .catch(error => {
+        //         submit_button_clicked = false;
+        //         console.error('Error fetching data:', error);
+        //     });
+        // });
     }
+}
+
+function saveNews(data){
+    var news = {
+        news : data
+    }
+    chrome.storage.local.set(news, function () {
+        console.log('Data saved:', news);
+    });
 }
