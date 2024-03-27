@@ -22,7 +22,7 @@ load_dotenv()
 gemini_key = os.environ.get('GEMINI_API_KEY')
 
 gn = GoogleNews()
-model_directory = r"C:\Users\vedan\OneDrive\Documents\GitHub\Personalized-News-Aggregator\trained_model"
+model_directory = r"E:\Programming\GITHUB\Personalized-News-Aggregator\trained_model"
 summarizer = pipeline("summarization", model="Falconsai/text_summarization")
 # Load tokenizer and model
 tokenizer = BertTokenizer.from_pretrained(model_directory)

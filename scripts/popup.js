@@ -77,7 +77,6 @@ function getHistoryKeywords() {
                 .then(response => response.json())
                 .then(data => {
                     news_response = data;
-                    console.log(news_response)
                     hideLoading();
                     // data.forEach(resData => {
                     //     displayNews(resData.news);
