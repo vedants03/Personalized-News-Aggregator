@@ -1,3 +1,4 @@
+import time
 import requests
 from fake_useragent import UserAgent
 from newspaper import Article
@@ -319,7 +320,7 @@ def summarization(scrapped_text):
     #     chunk_summary = " ".join(item.get('summary_text', '') for item in summarizer(chunk, max_length=100, min_length=100, do_sample=False))
     #     summary_text += chunk_summary
     # print(summary_text)
-
+    # st = time.time()
     # URL of the API endpoint you want to send the POST request to
     summary_text = ""
     url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + str(gemini_key)
@@ -349,7 +350,9 @@ def summarization(scrapped_text):
         # Print the error message if the request was not successful
         print('Error:', response.text)
         summary_text = response.text
-
+    # et = time.time()
+    # result = et-st
+    # print("time taken: "+str(result))
     return summary_text
 
 
@@ -366,7 +369,7 @@ def fetch_news_poster(poster_link):
         return base64_str
     except:
         img_byte_array = io.BytesIO()
-        image = Image.open(r'C:\Users\vedan\OneDrive\Documents\GitHub\Personalized-News-Aggregator\icon.jpeg')
+        image = Image.open(r'E:\\Programming\\GITHUB\\Personalized-News-Aggregator\\icon.jpeg')
         image.save(img_byte_array, format='PNG')
         # Convert the byte array to a base64-encoded string
         base64_str = base64.b64encode(img_byte_array.getvalue()).decode('utf-8')
